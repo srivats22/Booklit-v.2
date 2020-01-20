@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "379443036147",
+    "firebase_url": "https://booklit-acbc7.firebaseio.com",
+    "project_id": "booklit-acbc7",
+    "storage_bucket": "booklit-acbc7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:379443036147:android:313a676559d91b00809c86",
+        "android_client_info": {
+          "package_name": "com.example.booklit"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "379443036147-2fs151hifrgsofc57sb0s7t1si8i3m76.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.booklit",
+            "certificate_hash": "992a8350e68c4697c546fa9f6838b8e5f24f6875"
+          }
+        },
+        {
+          "client_id": "379443036147-pepjecc8ffgclvpsernd5p3vqjprmdrm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIbRDPLhdRJgumEWO7JhTeELjN3_Iyd34"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "379443036147-pepjecc8ffgclvpsernd5p3vqjprmdrm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "379443036147-7pv575edr1vgr2n3qcqolshcub22oe5l.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.RalphBelleca.booklit-3"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
