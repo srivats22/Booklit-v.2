@@ -69,6 +69,7 @@ class _NavigationState extends State<Navigation> {
                 ),
                 title: Text(
                   'Account',
+                  style: TextStyle(color: Colors.black),
                 ))
           ],
         ),
