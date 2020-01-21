@@ -24,7 +24,7 @@ class _HomeState extends State<Home> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    book = Book("", "", "", "", "", "");
+    book = Book("", "", "", "", "", "", "", "");
     final FirebaseDatabase database = FirebaseDatabase.instance;
     bookRef = database.reference().child('PDFs');
     bookRef.onChildAdded.listen(_onEntryAdded);
@@ -88,112 +88,282 @@ class _HomeState extends State<Home> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.only(left: 20, right: 20),
+              padding: EdgeInsets.all(20),
               child: TextFormField(
                 autofocus: true,
                 controller: controller,
                 decoration: InputDecoration(
-                    hintText: 'Search ISBN or Book Name',
+                    hintText: 'Search ISBN or Book Name or Major',
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(50)))),
               ),
             ),
             Flexible(
               child: FirebaseAnimatedList(
-                  query: bookRef,
-                  itemBuilder: (BuildContext context, DataSnapshot snapshot,
-                      Animation<double> animation, int index) {
-                    return books[index].name.contains(filter) ||
-                            books[index].isbn.contains(filter)
-                        ? GestureDetector(
-                            onTap: () => showBottomSheet(
-                                context: context,
-                                builder: (context) {
-                                  return Container(
-                                    height: 400,
-                                    child: ListView(
-                                      scrollDirection: Axis.vertical,
-                                      shrinkWrap: true,
-                                      children: <Widget>[
-                                        Image.network(
+                query: bookRef,
+                itemBuilder: (BuildContext context, DataSnapshot snapshot,
+                    Animation<double> animation, int index) {
+                  return books[index].name.contains(filter) ||
+                          books[index].isbn.contains(filter) ||
+                          books[index].major.contains(filter) ||
+                          books[index].isbn13.contains(filter)
+                      ? GestureDetector(
+                          onTap: () => showModalBottomSheet(
+                              context: context,
+                              builder: (context) {
+                                return Container(
+                                  height: 500,
+                                  child: ListView(
+                                    scrollDirection: Axis.vertical,
+                                    shrinkWrap: true,
+                                    children: <Widget>[
+                                      Padding(
+                                        padding: EdgeInsets.only(top: 10),
+                                        child: Image.network(
                                           books[index].image,
+                                          scale: .8,
                                           height: 200,
                                           width: 200,
+                                          loadingBuilder: (BuildContext context,
+                                              Widget child,
+                                              ImageChunkEvent loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return Center(
+                                              child: CircularProgressIndicator(
+                                                value: loadingProgress
+                                                            .expectedTotalBytes !=
+                                                        null
+                                                    ? loadingProgress
+                                                            .cumulativeBytesLoaded /
+                                                        loadingProgress
+                                                            .expectedTotalBytes
+                                                    : null,
+                                              ),
+                                            );
+                                          },
                                         ),
-                                        Center(
-                                          child: Column(
-                                            children: <Widget>[
-                                              Text(
-                                                books[index].name,
-                                                style: TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                              Text(
-                                                books[index].edition,
-                                                style: TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                              Text(
-                                                books[index].author,
-                                                style: TextStyle(
-                                                    fontStyle:
-                                                        FontStyle.italic),
-                                              ),
-                                            ],
+                                      ),
+                                      Text(
+                                        books[index].name,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      Text(
+                                        books[index].edition,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      Text(
+                                        books[index].author,
+                                        style: TextStyle(
+                                            fontStyle: FontStyle.italic,
+                                            fontSize: 18),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      ButtonBar(
+                                        alignment: MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          RaisedButton(
+                                            onPressed: () {
+                                              //ToDo: open pdf link
+                                            },
+                                            child: Text(
+                                              'Open PDF\non Mobile',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                            color:
+                                                Color.fromRGBO(255, 204, 0, 1),
+                                            elevation: 10,
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    new BorderRadius.circular(
+                                                        30.0)),
                                           ),
-                                        ),
-                                        ButtonBar(
-                                          alignment: MainAxisAlignment.center,
-                                          children: <Widget>[
-                                            RaisedButton(
-                                              child:
-                                                  Text('Open PDF\non mobile'),
-                                              onPressed: () {
-                                                var url = books[index].link;
-                                                if (canLaunch(url) != null) {
-                                                  launch(url);
-                                                } else {
-                                                  throw 'Could not launch $url';
-                                                }
-                                              },
+                                          RaisedButton(
+                                            onPressed: () {
+                                              //ToDo: send pdf link
+                                            },
+                                            child: Text(
+                                              'Send PDF\n(Email)',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  color: Colors.white),
                                             ),
-                                            RaisedButton(
-                                              child: Text('Send PDF\n(email)'),
+                                            color:
+                                                Color.fromRGBO(255, 204, 0, 1),
+                                            elevation: 10,
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    new BorderRadius.circular(
+                                                        30.0)),
+                                          ),
+                                          RaisedButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text(
+                                              'Close',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  color: Colors.white),
                                             ),
-                                            RaisedButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                              },
-                                              child: Text('Close'),
-                                            )
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                  );
-                                }),
-                            child: Padding(
-                              padding: EdgeInsets.all(10),
-                              child: Card(
-                                elevation: 10,
-                                color: Color.fromRGBO(255, 236, 179, 1),
-                                child: ListTile(
-                                  leading: Image.network(
-                                    books[index].image,
-                                    fit: BoxFit.cover,
+                                            color:
+                                                Color.fromRGBO(255, 204, 0, 1),
+                                            elevation: 10,
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    new BorderRadius.circular(
+                                                        30.0)),
+                                          ),
+                                        ],
+                                      )
+                                    ],
                                   ),
-                                  title: Text(books[index].name),
-                                  subtitle: Text(books[index].edition),
-                                ),
+                                );
+                              }),
+                          child: Padding(
+                            padding: EdgeInsets.only(left: 20, right: 20),
+                            child: Card(
+                              color: Color.fromRGBO(255, 236, 179, 1),
+                              child: ListTile(
+                                isThreeLine: true,
+                                leading: Image.network(books[index].image),
+                                title: Text(books[index].name),
+                                subtitle: Text(books[index].author +
+                                    '\n' +
+                                    books[index].edition),
                               ),
-                            ))
-                        : new Container();
-                  }),
+                            ),
+                          ))
+                      : new Container();
+                },
+              ),
             )
           ],
         ),
+//        floatingActionButton: FloatingActionButton(
+//          onPressed: () {
+//            showBottomSheet(
+//                context: context,
+//                builder: (context) {
+//                  return Container(
+//                      height: 600,
+//                      child: Form(
+//                        key: formKey,
+//                        child: ListView(
+//                          scrollDirection: Axis.vertical,
+//                          shrinkWrap: true,
+//                          children: <Widget>[
+//                            Padding(
+//                              padding: EdgeInsets.all(20),
+//                              child: TextFormField(
+//                                autofocus: true,
+//                                initialValue: "",
+//                                onSaved: (val) => book.image = val,
+//                                validator: (val) => val == "" ? val : null,
+//                                decoration: InputDecoration(
+//                                    hintText: 'Image URL',
+//                                    border: OutlineInputBorder(
+//                                        borderRadius: BorderRadius.all(
+//                                            Radius.circular(50)))),
+//                              ),
+//                            ),
+//                            Padding(
+//                              padding: EdgeInsets.all(20),
+//                              child: TextFormField(
+//                                initialValue: "",
+//                                onSaved: (val) => book.name = val,
+//                                validator: (val) => val == "" ? val : null,
+//                                decoration: InputDecoration(
+//                                    hintText: 'Book Name',
+//                                    border: OutlineInputBorder(
+//                                        borderRadius: BorderRadius.all(
+//                                            Radius.circular(50)))),
+//                              ),
+//                            ),
+//                            Padding(
+//                              padding: EdgeInsets.all(20),
+//                              child: TextFormField(
+//                                initialValue: "",
+//                                onSaved: (val) => book.isbn = val,
+//                                validator: (val) => val == "" ? val : null,
+//                                decoration: InputDecoration(
+//                                    hintText: 'ISBN',
+//                                    border: OutlineInputBorder(
+//                                        borderRadius: BorderRadius.all(
+//                                            Radius.circular(50)))),
+//                              ),
+//                            ),
+//                            Padding(
+//                              padding: EdgeInsets.all(20),
+//                              child: TextFormField(
+//                                initialValue: "",
+//                                onSaved: (val) => book.author = val,
+//                                validator: (val) => val == "" ? val : null,
+//                                decoration: InputDecoration(
+//                                    hintText: 'Author',
+//                                    border: OutlineInputBorder(
+//                                        borderRadius: BorderRadius.all(
+//                                            Radius.circular(50)))),
+//                              ),
+//                            ),
+//                            Padding(
+//                              padding: EdgeInsets.all(20),
+//                              child: TextFormField(
+//                                initialValue: "",
+//                                onSaved: (val) => book.edition = val,
+//                                validator: (val) => val == "" ? val : null,
+//                                decoration: InputDecoration(
+//                                    hintText: 'Edition',
+//                                    border: OutlineInputBorder(
+//                                        borderRadius: BorderRadius.all(
+//                                            Radius.circular(50)))),
+//                              ),
+//                            ),
+//                            Padding(
+//                              padding: EdgeInsets.all(20),
+//                              child: TextFormField(
+//                                initialValue: "",
+//                                onSaved: (val) => book.major = val,
+//                                validator: (val) => val == "" ? val : null,
+//                                decoration: InputDecoration(
+//                                    hintText: 'Major',
+//                                    border: OutlineInputBorder(
+//                                        borderRadius: BorderRadius.all(
+//                                            Radius.circular(50)))),
+//                              ),
+//                            ),
+//                            Padding(
+//                              padding: EdgeInsets.all(20),
+//                              child: TextFormField(
+//                                initialValue: "",
+//                                onSaved: (val) => book.link = val,
+//                                validator: (val) => val == "" ? val : null,
+//                                decoration: InputDecoration(
+//                                    hintText: 'PDF Link',
+//                                    border: OutlineInputBorder(
+//                                        borderRadius: BorderRadius.all(
+//                                            Radius.circular(50)))),
+//                              ),
+//                            ),
+//                            RaisedButton(
+//                              onPressed: handleSubmit,
+//                              child: Text('Submit'),
+//                            )
+//                          ],
+//                        ),
+//                      ));
+//                });
+//          },
+//          child: Icon(Icons.add),
+//        ),
       ),
     );
   }
@@ -207,8 +377,11 @@ class Book {
   String edition;
   String author;
   String link;
+  String major;
+  String isbn13;
 
-  Book(this.image, this.name, this.isbn, this.edition, this.author, this.link);
+  Book(this.image, this.name, this.isbn, this.edition, this.author, this.link,
+      this.major, this.isbn13);
 
   Book.fromSnapshot(DataSnapshot snapshot)
       : key = snapshot.key,
@@ -217,7 +390,9 @@ class Book {
         isbn = snapshot.value["isbn"],
         edition = snapshot.value["edition"],
         author = snapshot.value["author"],
-        link = snapshot.value["link"];
+        link = snapshot.value["link"],
+        major = snapshot.value["major"],
+        isbn13 = snapshot.value["isbn13"];
 
   toJson() {
     return {
@@ -226,7 +401,9 @@ class Book {
       "isbn": isbn,
       "edition": edition,
       "author": author,
-      "link": link
+      "link": link,
+      "major": major,
+      "isbn13": isbn13
     };
   }
 }
