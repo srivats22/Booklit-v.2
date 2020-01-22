@@ -27,8 +27,9 @@ class _NavigationState extends State<Navigation> {
       child: Scaffold(
         body: _pageOption[_selectedPage],
         bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: Color.fromRGBO(255, 214, 89, 1),
+//          backgroundColor: Color.fromRGBO(255, 214, 89, 1),
           currentIndex: _selectedPage,
+          type: BottomNavigationBarType.fixed,
           onTap: (int index) {
             setState(() {
               _selectedPage = index;
@@ -70,7 +71,7 @@ class _NavigationState extends State<Navigation> {
                 title: Text(
                   'Account',
                   style: TextStyle(color: Colors.black),
-                ))
+                )),
           ],
         ),
       ),
