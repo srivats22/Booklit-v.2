@@ -1,21 +1,21 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
-import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:share/share.dart';
 
-class Home extends StatefulWidget {
+class MarketSearch extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
-    return _HomeState();
+    return _MarkerSearch();
   }
 }
 
-class _HomeState extends State<Home> {
-  List<Book> books = List();
-  Book book;
-  DatabaseReference bookRef;
+class _MarkerSearch extends State<MarketSearch> {
+  List<Item> items = List();
+  Item item;
+  DatabaseReference itemRef;
   TextEditingController controller = new TextEditingController();
   String filter;
 
@@ -25,11 +25,12 @@ class _HomeState extends State<Home> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    book = Book("", "", "", "", "", "", "", "");
-    final FirebaseDatabase database = FirebaseDatabase.instance;
-    bookRef = database.reference().child('PDFs');
-    bookRef.onChildAdded.listen(_onEntryAdded);
-    bookRef.onChildChanged.listen(_onEntryChanged);
+    item = Item("", "", "", "");
+    final FirebaseDatabase database = FirebaseDatabase
+        .instance; //Rather then just writing FirebaseDatabase(), get the instance.
+    itemRef = database.reference().child('sellers');
+    itemRef.onChildAdded.listen(_onEntryAdded);
+    itemRef.onChildChanged.listen(_onEntryChanged);
     controller.addListener(() {
       setState(() {
         filter = controller.text;
@@ -39,25 +40,26 @@ class _HomeState extends State<Home> {
 
   _onEntryAdded(Event event) {
     setState(() {
-      books.add(Book.fromSnapshot(event.snapshot));
+      items.add(Item.fromSnapshot(event.snapshot));
     });
   }
 
   _onEntryChanged(Event event) {
-    var old = books.singleWhere((entry) {
+    var old = items.singleWhere((entry) {
       return entry.key == event.snapshot.key;
     });
     setState(() {
-      books[books.indexOf(old)] = Book.fromSnapshot(event.snapshot);
+      items[items.indexOf(old)] = Item.fromSnapshot(event.snapshot);
     });
   }
 
   void handleSubmit() {
     final FormState form = formKey.currentState;
+
     if (form.validate()) {
       form.save();
       form.reset();
-      bookRef.push().set(book.toJson());
+      itemRef.push().set(item.toJson());
     }
   }
 
@@ -71,52 +73,38 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return SafeArea(
-      child: Scaffold(
-        body: Column(
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
           children: <Widget>[
-            Padding(
-              padding: EdgeInsets.all(8),
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  'BookLit',
-                  style: TextStyle(
-                      color: Color.fromRGBO(255, 204, 0, 1),
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold),
+            ListTile(
+              leading: IconButton(
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: Colors.black,
                 ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(20),
-              child: TextFormField(
-                autofocus: true,
-                controller: controller,
-                decoration: InputDecoration(
-                    hintText: 'Search ISBN or Book Name or Major',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(50)))),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(left: 20, top: 20, bottom: 10),
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  'Available PDF',
-                  style: TextStyle(color: Colors.black, fontSize: 20),
+              title: Padding(
+                padding: EdgeInsets.only(top: 10),
+                child: TextFormField(
+                  autofocus: true,
+                  controller: controller,
+                  decoration: InputDecoration(
+                      hintText: 'Search book name',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(50)))),
                 ),
               ),
             ),
             Flexible(
               child: FirebaseAnimatedList(
-                query: bookRef,
+                query: itemRef,
                 itemBuilder: (BuildContext context, DataSnapshot snapshot,
                     Animation<double> animation, int index) {
-                  return books[index].name.contains(filter) ||
-                          books[index].isbn.contains(filter) ||
-                          books[index].major.contains(filter)
+                  return items[index].bookName.contains(filter)
                       ? GestureDetector(
                           onTap: () => showModalBottomSheet(
                               context: context,
@@ -130,7 +118,7 @@ class _HomeState extends State<Home> {
                                       Padding(
                                         padding: EdgeInsets.only(top: 10),
                                         child: Image.network(
-                                          books[index].image,
+                                          items[index].image,
                                           scale: .8,
                                           height: 200,
                                           width: 200,
@@ -155,21 +143,21 @@ class _HomeState extends State<Home> {
                                         ),
                                       ),
                                       Text(
-                                        books[index].name,
+                                        items[index].bookName,
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 20),
                                         textAlign: TextAlign.center,
                                       ),
                                       Text(
-                                        books[index].edition + ' Edition',
+                                        items[index].sellerName,
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18),
                                         textAlign: TextAlign.center,
                                       ),
                                       Text(
-                                        books[index].author,
+                                        items[index].contact,
                                         style: TextStyle(
                                             fontStyle: FontStyle.italic,
                                             fontSize: 18),
@@ -180,36 +168,33 @@ class _HomeState extends State<Home> {
                                         children: <Widget>[
                                           RaisedButton(
                                             onPressed: () {
-                                              //ToDo: open pdf link
-                                              var url = books[index].link;
-                                              if (canLaunch(url) != null) {
-                                                launch(url);
+                                              if (items[index]
+                                                  .contact
+                                                  .contains('@')) {
+                                                var email =
+                                                    items[index].contact;
+                                                var uri =
+                                                    'mailto:$email?subject=Book availability&body=Hi, Is the book still'
+                                                    ' available';
+                                                if (canLaunch(uri) != null) {
+                                                  launch(uri);
+                                                } else {
+                                                  throw 'Cannot launch $uri';
+                                                }
                                               } else {
-                                                throw 'Could not launch $url';
+                                                var number =
+                                                    items[index].contact;
+                                                var uri =
+                                                    'sms:$number?body=Is the book still available';
+                                                if (canLaunch(uri) != null) {
+                                                  launch(uri);
+                                                } else {
+                                                  throw 'Cannot launch $uri';
+                                                }
                                               }
                                             },
                                             child: Text(
-                                              'Open PDF\non Mobile',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  color: Colors.white),
-                                            ),
-                                            color:
-                                                Color.fromRGBO(255, 204, 0, 1),
-                                            elevation: 10,
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    new BorderRadius.circular(
-                                                        30.0)),
-                                          ),
-                                          RaisedButton(
-                                            onPressed: () {
-                                              //ToDo: send pdf link
-                                              var bookLink = books[index].link;
-                                              Share.share(bookLink);
-                                            },
-                                            child: Text(
-                                              'Share PDF',
+                                              'Contact Seller',
                                               textAlign: TextAlign.center,
                                               style: TextStyle(
                                                   color: Colors.white),
@@ -234,9 +219,8 @@ class _HomeState extends State<Home> {
                               elevation: 10,
                               color: Color.fromRGBO(255, 236, 179, 1),
                               child: ListTile(
-                                isThreeLine: true,
                                 leading: Image.network(
-                                  books[index].image,
+                                  items[index].image,
                                   loadingBuilder: (BuildContext context,
                                       Widget child,
                                       ImageChunkEvent loadingProgress) {
@@ -256,12 +240,10 @@ class _HomeState extends State<Home> {
                                   },
                                 ),
                                 title: Text(
-                                  books[index].name,
+                                  items[index].sellerName,
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
-                                subtitle: Text(books[index].author +
-                                    '\n' +
-                                    books[index].edition),
+                                subtitle: Text(items[index].contact),
                               ),
                             ),
                           ))
@@ -276,41 +258,28 @@ class _HomeState extends State<Home> {
   }
 }
 
-class Book {
+class Item {
   String key;
   String image;
-  String name;
-  String isbn;
-  String edition;
-  String author;
-  String link;
-  String major;
-  String isbn13;
+  String sellerName;
+  String contact;
+  String bookName;
 
-  Book(this.image, this.name, this.isbn, this.edition, this.author, this.link,
-      this.major, this.isbn13);
+  Item(this.image, this.sellerName, this.contact, this.bookName);
 
-  Book.fromSnapshot(DataSnapshot snapshot)
+  Item.fromSnapshot(DataSnapshot snapshot)
       : key = snapshot.key,
         image = snapshot.value["image"],
-        name = snapshot.value["name"],
-        isbn = snapshot.value["isbn"],
-        edition = snapshot.value["edition"],
-        author = snapshot.value["author"],
-        link = snapshot.value["link"],
-        major = snapshot.value["major"],
-        isbn13 = snapshot.value["isbn13"];
+        sellerName = snapshot.value["seller name"],
+        contact = snapshot.value["contact"],
+        bookName = snapshot.value["book name"];
 
   toJson() {
     return {
       "image": image,
-      "name": name,
-      "isbn": isbn,
-      "edition": edition,
-      "author": author,
-      "link": link,
-      "major": major,
-      "isbn13": isbn13
+      "seller name": sellerName,
+      "contact": contact,
+      "book name": bookName,
     };
   }
 }

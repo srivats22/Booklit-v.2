@@ -1,7 +1,7 @@
 import 'package:booklit/Screens/Account.dart';
-import 'package:booklit/Screens/HomeScreen.dart';
+import 'package:booklit/Screens/PDF.dart';
+import 'package:booklit/Screens/Market.dart';
 import 'package:booklit/Screens/Request.dart';
-import 'package:booklit/Screens/market.dart';
 import 'package:flutter/material.dart';
 
 class Navigation extends StatefulWidget {
@@ -15,7 +15,7 @@ class Navigation extends StatefulWidget {
 class _NavigationState extends State<Navigation> {
   int _selectedPage = 0;
   final _pageOption = [
-    Home(),
+    PDF(),
     Market(),
     Request(),
     Account(),
@@ -27,7 +27,7 @@ class _NavigationState extends State<Navigation> {
       child: Scaffold(
         body: _pageOption[_selectedPage],
         bottomNavigationBar: BottomNavigationBar(
-//          backgroundColor: Color.fromRGBO(255, 214, 89, 1),
+          backgroundColor: Color.fromRGBO(255, 214, 89, 1),
           currentIndex: _selectedPage,
           type: BottomNavigationBarType.fixed,
           onTap: (int index) {
