@@ -66,7 +66,7 @@ class _RequestState extends State<Request> {
               child: Text(
                 'BookLit',
                 style: TextStyle(
-                    color: Color.fromRGBO(255, 214, 89, 1),
+                    color: Color.fromRGBO(255, 204, 0, 1),
                     fontSize: 40,
                     fontWeight: FontWeight.bold),
               ),

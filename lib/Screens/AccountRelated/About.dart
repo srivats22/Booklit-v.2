@@ -13,7 +13,7 @@ class About extends StatelessWidget {
         title: Text(
           'BookLit',
           style: TextStyle(
-              color: Color.fromRGBO(255, 214, 89, 1),
+              color: Color.fromRGBO(255, 204, 0, 1),
               fontSize: 40,
               fontWeight: FontWeight.bold),
         ),
@@ -31,6 +31,8 @@ class About extends StatelessWidget {
                       children: <Widget>[
                         Image.asset(
                           'assets/images/logoFinal.png',
+                          cacheHeight: 100,
+                          cacheWidth: 100,
                           scale: .5,
                           height: 100,
                           width: 100,
@@ -38,58 +40,33 @@ class About extends StatelessWidget {
                         Text(
                           'BookLit',
                           style: TextStyle(
-                              color: Color.fromRGBO(255, 214, 89, 1),
-                              fontSize: 40,
-                              fontWeight: FontWeight.bold),
+                            color: Color.fromRGBO(255, 204, 0, 1),
+                            fontSize: 50,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        Text('For Students, by Students'),
+                        Text(
+                          'For Students, by Students',
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontStyle: FontStyle.italic),
+                        ),
                         Padding(
                           padding: EdgeInsets.all(20),
                           child: Text(
                             'BookLit was developed with one goal in mind.'
-                            'To make buying and selling books easier for students at\n'
-                            'Cal State LA.',
+                            'To make buying and selling books easier for students at '
+                            'Cal State LA.\nHow do we do this? Well it is simple.\n'
+                            'We find pdf versions of books used on campus, get the pdf link '
+                            'which we then upload to a secure database, which gives you'
+                            ' access to the books. We also have our users upload books they wish to sell'
+                            ' and you can find sellers based on book name',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.robotoMono(
                                 textStyle: TextStyle(fontSize: 20)),
                           ),
                         ),
-                        Padding(
-                          padding: EdgeInsets.only(left: 30, right: 30),
-                          child: Divider(
-                            color: Colors.black,
-                            thickness: .5,
-                          ),
-                        ),
-                        GestureDetector(
-                          child: ListTile(
-                            leading: Icon(
-                              FontAwesomeIcons.github,
-                              color: Colors.black,
-                              size: 20,
-                            ),
-                            title: Text(
-                              'Github',
-                              style: GoogleFonts.roboto(
-                                  textStyle: TextStyle(
-                                      color: Colors.black, fontSize: 20)),
-                            ),
-                          ),
-                        ),
-                        GestureDetector(
-                          child: ListTile(
-                            leading: Icon(
-                              Icons.email,
-                              color: Colors.black,
-                            ),
-                            title: Text(
-                              'Contact Us',
-                              style: GoogleFonts.roboto(
-                                  textStyle: TextStyle(
-                                      fontSize: 20, color: Colors.black)),
-                            ),
-                          ),
-                        )
                       ],
                     )))
           ],
