@@ -1,17 +1,18 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
+import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class Home extends StatefulWidget {
+class PDFSearch extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
-    return _HomeState();
+    return _PDFSearchState();
   }
 }
 
-class _HomeState extends State<Home> {
+class _PDFSearchState extends State<PDFSearch> {
   List<Book> books = List();
   Book book;
   DatabaseReference bookRef;
@@ -74,39 +75,34 @@ class _HomeState extends State<Home> {
       child: Scaffold(
         body: Column(
           children: <Widget>[
-            Padding(
-              padding: EdgeInsets.all(8),
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  'BookLit',
-                  style: TextStyle(
-                      color: Color.fromRGBO(255, 214, 89, 1),
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold),
+            ListTile(
+                leading: IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(Icons.arrow_back),
+                  color: Colors.black,
                 ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(20),
-              child: TextFormField(
-                autofocus: true,
-                controller: controller,
-                decoration: InputDecoration(
-                    hintText: 'Search ISBN or Book Name or Major',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(50)))),
-              ),
-            ),
+                title: Padding(
+                  padding: EdgeInsets.only(top: 10),
+                  child: TextFormField(
+                    autofocus: true,
+                    controller: controller,
+                    decoration: InputDecoration(
+                        hintText: 'ISBN, Book Name or Major',
+                        border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(50)))),
+                  ),
+                )),
             Flexible(
               child: FirebaseAnimatedList(
                 query: bookRef,
                 itemBuilder: (BuildContext context, DataSnapshot snapshot,
                     Animation<double> animation, int index) {
                   return books[index].name.contains(filter) ||
-                          books[index].isbn.contains(filter) ||
                           books[index].major.contains(filter) ||
-                          books[index].isbn13.contains(filter)
+                          books[index].isbn.contains(filter)
                       ? GestureDetector(
                           onTap: () => showModalBottomSheet(
                               context: context,
@@ -152,7 +148,7 @@ class _HomeState extends State<Home> {
                                         textAlign: TextAlign.center,
                                       ),
                                       Text(
-                                        books[index].edition,
+                                        books[index].edition + ' Edition',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18),
@@ -171,6 +167,12 @@ class _HomeState extends State<Home> {
                                           RaisedButton(
                                             onPressed: () {
                                               //ToDo: open pdf link
+                                              var url = books[index].link;
+                                              if (canLaunch(url) != null) {
+                                                launch(url);
+                                              } else {
+                                                throw 'Could not launch $url';
+                                              }
                                             },
                                             child: Text(
                                               'Open PDF\non Mobile',
@@ -189,27 +191,11 @@ class _HomeState extends State<Home> {
                                           RaisedButton(
                                             onPressed: () {
                                               //ToDo: send pdf link
+                                              var bookLink = books[index].link;
+                                              Share.share(bookLink);
                                             },
                                             child: Text(
-                                              'Send PDF\n(Email)',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  color: Colors.white),
-                                            ),
-                                            color:
-                                                Color.fromRGBO(255, 204, 0, 1),
-                                            elevation: 10,
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    new BorderRadius.circular(
-                                                        30.0)),
-                                          ),
-                                          RaisedButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            child: Text(
-                                              'Close',
+                                              'Share PDF',
                                               textAlign: TextAlign.center,
                                               style: TextStyle(
                                                   color: Colors.white),
@@ -231,11 +217,34 @@ class _HomeState extends State<Home> {
                           child: Padding(
                             padding: EdgeInsets.only(left: 20, right: 20),
                             child: Card(
+                              elevation: 10,
                               color: Color.fromRGBO(255, 236, 179, 1),
                               child: ListTile(
                                 isThreeLine: true,
-                                leading: Image.network(books[index].image),
-                                title: Text(books[index].name),
+                                leading: Image.network(
+                                  books[index].image,
+                                  loadingBuilder: (BuildContext context,
+                                      Widget child,
+                                      ImageChunkEvent loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress
+                                                    .expectedTotalBytes !=
+                                                null
+                                            ? loadingProgress
+                                                    .cumulativeBytesLoaded /
+                                                loadingProgress
+                                                    .expectedTotalBytes
+                                            : null,
+                                      ),
+                                    );
+                                  },
+                                ),
+                                title: Text(
+                                  books[index].name,
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
                                 subtitle: Text(books[index].author +
                                     '\n' +
                                     books[index].edition),
@@ -248,122 +257,6 @@ class _HomeState extends State<Home> {
             )
           ],
         ),
-//        floatingActionButton: FloatingActionButton(
-//          onPressed: () {
-//            showBottomSheet(
-//                context: context,
-//                builder: (context) {
-//                  return Container(
-//                      height: 600,
-//                      child: Form(
-//                        key: formKey,
-//                        child: ListView(
-//                          scrollDirection: Axis.vertical,
-//                          shrinkWrap: true,
-//                          children: <Widget>[
-//                            Padding(
-//                              padding: EdgeInsets.all(20),
-//                              child: TextFormField(
-//                                autofocus: true,
-//                                initialValue: "",
-//                                onSaved: (val) => book.image = val,
-//                                validator: (val) => val == "" ? val : null,
-//                                decoration: InputDecoration(
-//                                    hintText: 'Image URL',
-//                                    border: OutlineInputBorder(
-//                                        borderRadius: BorderRadius.all(
-//                                            Radius.circular(50)))),
-//                              ),
-//                            ),
-//                            Padding(
-//                              padding: EdgeInsets.all(20),
-//                              child: TextFormField(
-//                                initialValue: "",
-//                                onSaved: (val) => book.name = val,
-//                                validator: (val) => val == "" ? val : null,
-//                                decoration: InputDecoration(
-//                                    hintText: 'Book Name',
-//                                    border: OutlineInputBorder(
-//                                        borderRadius: BorderRadius.all(
-//                                            Radius.circular(50)))),
-//                              ),
-//                            ),
-//                            Padding(
-//                              padding: EdgeInsets.all(20),
-//                              child: TextFormField(
-//                                initialValue: "",
-//                                onSaved: (val) => book.isbn = val,
-//                                validator: (val) => val == "" ? val : null,
-//                                decoration: InputDecoration(
-//                                    hintText: 'ISBN',
-//                                    border: OutlineInputBorder(
-//                                        borderRadius: BorderRadius.all(
-//                                            Radius.circular(50)))),
-//                              ),
-//                            ),
-//                            Padding(
-//                              padding: EdgeInsets.all(20),
-//                              child: TextFormField(
-//                                initialValue: "",
-//                                onSaved: (val) => book.author = val,
-//                                validator: (val) => val == "" ? val : null,
-//                                decoration: InputDecoration(
-//                                    hintText: 'Author',
-//                                    border: OutlineInputBorder(
-//                                        borderRadius: BorderRadius.all(
-//                                            Radius.circular(50)))),
-//                              ),
-//                            ),
-//                            Padding(
-//                              padding: EdgeInsets.all(20),
-//                              child: TextFormField(
-//                                initialValue: "",
-//                                onSaved: (val) => book.edition = val,
-//                                validator: (val) => val == "" ? val : null,
-//                                decoration: InputDecoration(
-//                                    hintText: 'Edition',
-//                                    border: OutlineInputBorder(
-//                                        borderRadius: BorderRadius.all(
-//                                            Radius.circular(50)))),
-//                              ),
-//                            ),
-//                            Padding(
-//                              padding: EdgeInsets.all(20),
-//                              child: TextFormField(
-//                                initialValue: "",
-//                                onSaved: (val) => book.major = val,
-//                                validator: (val) => val == "" ? val : null,
-//                                decoration: InputDecoration(
-//                                    hintText: 'Major',
-//                                    border: OutlineInputBorder(
-//                                        borderRadius: BorderRadius.all(
-//                                            Radius.circular(50)))),
-//                              ),
-//                            ),
-//                            Padding(
-//                              padding: EdgeInsets.all(20),
-//                              child: TextFormField(
-//                                initialValue: "",
-//                                onSaved: (val) => book.link = val,
-//                                validator: (val) => val == "" ? val : null,
-//                                decoration: InputDecoration(
-//                                    hintText: 'PDF Link',
-//                                    border: OutlineInputBorder(
-//                                        borderRadius: BorderRadius.all(
-//                                            Radius.circular(50)))),
-//                              ),
-//                            ),
-//                            RaisedButton(
-//                              onPressed: handleSubmit,
-//                              child: Text('Submit'),
-//                            )
-//                          ],
-//                        ),
-//                      ));
-//                });
-//          },
-//          child: Icon(Icons.add),
-//        ),
       ),
     );
   }
