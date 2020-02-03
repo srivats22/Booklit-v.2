@@ -1,72 +1,80 @@
-import 'dart:io';
-import 'package:booklit/Screens/MarketSearch.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:booklit/Screens/HardBound.dart';
+import 'package:booklit/Screens/PDFSearch.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
+import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:share/share.dart';
 
-class Market extends StatefulWidget {
+class PDF extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
-    return _MarketState();
+    return _PDFState();
   }
 }
 
-class CallService {
-  void call(String number) => launch("tel: $number");
-}
-
-class _MarketState extends State<Market> {
-  List<Item> items = List();
-  Item item;
-  DatabaseReference itemRef;
+class _PDFState extends State<PDF> {
+  List<Book> books = List();
+  Book book;
+  DatabaseReference bookRef;
+  TextEditingController controller = new TextEditingController();
+  String filter;
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
-    item = Item("", "", "", "");
-    final FirebaseDatabase database = FirebaseDatabase
-        .instance; //Rather then just writing FirebaseDatabase(), get the instance.
-    itemRef = database.reference().child('sellers');
-    itemRef.onChildAdded.listen(_onEntryAdded);
-    itemRef.onChildChanged.listen(_onEntryChanged);
+    book = Book("", "", "", "", "", "", "", "");
+    final FirebaseDatabase database = FirebaseDatabase.instance;
+    bookRef = database.reference().child('PDFs');
+    bookRef.onChildAdded.listen(_onEntryAdded);
+    bookRef.onChildChanged.listen(_onEntryChanged);
+    controller.addListener(() {
+      setState(() {
+        filter = controller.text;
+      });
+    });
   }
 
   _onEntryAdded(Event event) {
     setState(() {
-      items.add(Item.fromSnapshot(event.snapshot));
+      books.add(Book.fromSnapshot(event.snapshot));
     });
   }
 
   _onEntryChanged(Event event) {
-    var old = items.singleWhere((entry) {
+    var old = books.singleWhere((entry) {
       return entry.key == event.snapshot.key;
     });
     setState(() {
-      items[items.indexOf(old)] = Item.fromSnapshot(event.snapshot);
+      books[books.indexOf(old)] = Book.fromSnapshot(event.snapshot);
     });
   }
 
   void handleSubmit() {
     final FormState form = formKey.currentState;
-
     if (form.validate()) {
       form.save();
       form.reset();
-      itemRef.push().set(item.toJson());
+      bookRef.push().set(book.toJson());
     }
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
+    // TODO: implement build
+    return SafeArea(
+      child: Scaffold(
+        body: Column(
           children: <Widget>[
             Padding(
                 padding: EdgeInsets.all(8),
@@ -93,7 +101,7 @@ class _MarketState extends State<Market> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (BuildContext context) =>
-                                        MarketSearch()));
+                                        PDFSearch()));
                           },
                           icon: Icon(Icons.search),
                           color: Colors.black,
@@ -108,7 +116,7 @@ class _MarketState extends State<Market> {
               child: Align(
                 alignment: Alignment.center,
                 child: Text(
-                  'Sellers',
+                  'Available PDF',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.black, fontSize: 20),
                 ),
@@ -116,7 +124,7 @@ class _MarketState extends State<Market> {
             ),
             Flexible(
               child: FirebaseAnimatedList(
-                query: itemRef,
+                query: bookRef,
                 itemBuilder: (BuildContext context, DataSnapshot snapshot,
                     Animation<double> animation, int index) {
                   return GestureDetector(
@@ -132,7 +140,7 @@ class _MarketState extends State<Market> {
                                   Padding(
                                     padding: EdgeInsets.only(top: 10),
                                     child: Image.network(
-                                      items[index].image,
+                                      books[index].image,
                                       scale: .8,
                                       height: 200,
                                       width: 200,
@@ -157,20 +165,24 @@ class _MarketState extends State<Market> {
                                     ),
                                   ),
                                   Text(
-                                    'Book Name: ' + items[index].bookName,
+                                    books[index].name,
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 20),
                                     textAlign: TextAlign.center,
                                   ),
                                   Text(
-                                    "Seller's Name: " + items[index].sellerName,
-                                    style: TextStyle(fontSize: 18),
+                                    books[index].edition + ' Edition',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18),
                                     textAlign: TextAlign.center,
                                   ),
                                   Text(
-                                    "Contact Info: " + items[index].contact,
-                                    style: TextStyle(fontSize: 18),
+                                    books[index].author,
+                                    style: TextStyle(
+                                        fontStyle: FontStyle.italic,
+                                        fontSize: 18),
                                     textAlign: TextAlign.center,
                                   ),
                                   ButtonBar(
@@ -178,31 +190,34 @@ class _MarketState extends State<Market> {
                                     children: <Widget>[
                                       RaisedButton(
                                         onPressed: () {
-                                          if (items[index]
-                                              .contact
-                                              .contains('@')) {
-                                            var email = items[index].contact;
-                                            var uri =
-                                                'mailto:$email?subject=Book availability&body=Hi, Is the book still'
-                                                ' available';
-                                            if (canLaunch(uri) != null) {
-                                              launch(uri);
-                                            } else {
-                                              throw 'Cannot launch $uri';
-                                            }
+                                          //ToDo: open pdf link
+                                          var url = books[index].link;
+                                          if (canLaunch(url) != null) {
+                                            launch(url);
                                           } else {
-                                            var number = items[index].contact;
-                                            var uri =
-                                                'sms:$number?body=Is the book still available';
-                                            if (canLaunch(uri) != null) {
-                                              launch(uri);
-                                            } else {
-                                              throw 'Cannot launch $uri';
-                                            }
+                                            throw 'Could not launch $url';
                                           }
                                         },
                                         child: Text(
-                                          'Contact Seller',
+                                          'Open PDF\non Mobile',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        color: Color.fromRGBO(255, 204, 0, 1),
+                                        elevation: 10,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                new BorderRadius.circular(
+                                                    30.0)),
+                                      ),
+                                      RaisedButton(
+                                        onPressed: () {
+                                          //ToDo: send pdf link
+                                          var bookLink = books[index].link;
+                                          Share.share(bookLink);
+                                        },
+                                        child: Text(
+                                          'Share PDF',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(color: Colors.white),
                                         ),
@@ -225,8 +240,9 @@ class _MarketState extends State<Market> {
                           elevation: 10,
                           color: Color.fromRGBO(255, 236, 179, 1),
                           child: ListTile(
+                            isThreeLine: true,
                             leading: Image.network(
-                              items[index].image,
+                              books[index].image,
                               loadingBuilder: (BuildContext context,
                                   Widget child,
                                   ImageChunkEvent loadingProgress) {
@@ -244,55 +260,60 @@ class _MarketState extends State<Market> {
                               },
                             ),
                             title: Text(
-                              items[index].sellerName,
+                              books[index].name,
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            subtitle: Text(items[index].contact),
+                            subtitle: Text(books[index].author +
+                                '\n' +
+                                books[index].edition),
                           ),
                         ),
                       ));
                 },
               ),
-            ),
+            )
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (BuildContext context) => HardBound()));
-        },
-        label: Text('Sell Book'),
-        icon: Icon(Icons.add),
       ),
     );
   }
 }
 
-class Item {
+class Book {
   String key;
   String image;
-  String sellerName;
-  String contact;
-  String bookName;
+  String name;
+  String isbn;
+  String edition;
+  String author;
+  String link;
+  String major;
+  String isbn13;
 
-  Item(this.image, this.sellerName, this.contact, this.bookName);
+  Book(this.image, this.name, this.isbn, this.edition, this.author, this.link,
+      this.major, this.isbn13);
 
-  Item.fromSnapshot(DataSnapshot snapshot)
+  Book.fromSnapshot(DataSnapshot snapshot)
       : key = snapshot.key,
         image = snapshot.value["image"],
-        sellerName = snapshot.value["seller name"],
-        contact = snapshot.value["contact"],
-        bookName = snapshot.value["book name"];
+        name = snapshot.value["name"],
+        isbn = snapshot.value["isbn"],
+        edition = snapshot.value["edition"],
+        author = snapshot.value["author"],
+        link = snapshot.value["link"],
+        major = snapshot.value["major"],
+        isbn13 = snapshot.value["isbn13"];
 
   toJson() {
     return {
       "image": image,
-      "seller name": sellerName,
-      "contact": contact,
-      "book name": bookName,
+      "name": name,
+      "isbn": isbn,
+      "edition": edition,
+      "author": author,
+      "link": link,
+      "major": major,
+      "isbn13": isbn13
     };
   }
 }

@@ -1,6 +1,9 @@
 import 'package:booklit/Auth/Login.dart';
+import 'package:booklit/Screens/AccountRelated/TermsOfUse.dart';
 import 'package:booklit/Screens/AccountRelated/UserProfile.dart';
+import 'package:booklit/Screens/AccountRelated/privacy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'AccountRelated/About.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -29,10 +32,48 @@ class _AccountState extends State<Account> {
               child: Text(
                 'BookLit',
                 style: TextStyle(
-                    color: Color.fromRGBO(255, 214, 89, 1),
+                    color: Color.fromRGBO(255, 204, 0, 1),
                     fontSize: 40,
                     fontWeight: FontWeight.bold),
               ),
+            ),
+            Icon(
+              Icons.account_circle,
+              color: Colors.black,
+              size: 50,
+            ),
+            FutureBuilder(
+              future: FirebaseAuth.instance.currentUser(),
+              builder: (context, AsyncSnapshot<FirebaseUser> snapshot) {
+                if (snapshot.hasData) {
+                  String email = snapshot.data.email;
+                  String name =
+                      email.substring(0, email.indexOf("@calstatela.edu"));
+                  return Text(
+                    name,
+                    textAlign: TextAlign.center,
+                    style:
+                        GoogleFonts.roboto(textStyle: TextStyle(fontSize: 30)),
+                  );
+                }
+                return CircularProgressIndicator();
+              },
+            ),
+            FutureBuilder(
+              future: FirebaseAuth.instance.currentUser(),
+              builder: (context, AsyncSnapshot<FirebaseUser> snapshot) {
+                if (snapshot.hasData) {
+                  String email = snapshot.data.email;
+                  return Text(
+                    email,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.roboto(
+                        textStyle:
+                            TextStyle(fontSize: 20, color: Colors.black)),
+                  );
+                }
+                return CircularProgressIndicator();
+              },
             ),
             Padding(
               padding: EdgeInsets.all(20),
@@ -40,52 +81,13 @@ class _AccountState extends State<Account> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  ListTile(
-                    leading: Card(
-                      color: Color.fromRGBO(126, 187, 191, 1),
-                      child: Icon(
-                        Icons.account_circle,
-                        size: 50,
-                        color: Colors.black,
-                      ),
-                    ),
-                    title: FutureBuilder(
-                      future: FirebaseAuth.instance.currentUser(),
-                      builder: (context, AsyncSnapshot<FirebaseUser> snapshot) {
-                        if (snapshot.hasData) {
-                          String email = snapshot.data.email;
-                          String name = email.substring(
-                              0, email.indexOf("@calstatela.edu"));
-                          return Text(
-                            'Name: ' + name,
-                            style: GoogleFonts.roboto(
-                                textStyle: TextStyle(fontSize: 20)),
-                          );
-                        }
-                        return CircularProgressIndicator();
-                      },
-                    ),
-                    subtitle: FutureBuilder(
-                      future: FirebaseAuth.instance.currentUser(),
-                      builder: (context, AsyncSnapshot<FirebaseUser> snapshot) {
-                        if (snapshot.hasData) {
-                          String email = snapshot.data.email;
-                          return Text(
-                            'Email: ' +
-                                email +
-                                '\nVerified: ' +
-                                snapshot.data.isEmailVerified.toString(),
-                            style: GoogleFonts.roboto(
-                                textStyle: TextStyle(
-                                    fontSize: 20, color: Colors.black)),
-                          );
-                        }
-                        return CircularProgressIndicator();
-                      },
-                    ),
-                  ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Privacy()),
+                      );
+                    },
                     child: ListTile(
                       leading: Icon(
                         Icons.lock,
@@ -105,7 +107,26 @@ class _AccountState extends State<Account> {
                     thickness: .5,
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Alert(
+                        context: context,
+                        type: AlertType.info,
+                        title: "Under Development",
+                        desc:
+                            "The terms of use page is still under development. Check back soon for an update.",
+                        buttons: [
+                          DialogButton(
+                            child: Text(
+                              "Close",
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 20),
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                            width: 120,
+                          )
+                        ],
+                      ).show();
+                    },
                     child: ListTile(
                       leading: Icon(
                         Icons.security,
