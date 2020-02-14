@@ -127,8 +127,12 @@ class _PDFState extends State<PDF> {
                 query: bookRef,
                 itemBuilder: (BuildContext context, DataSnapshot snapshot,
                     Animation<double> animation, int index) {
+                  if (snapshot.value == null) {
+                    return CircularProgressIndicator();
+                  }
                   return GestureDetector(
                       onTap: () => showModalBottomSheet(
+                          enableDrag: true,
                           context: context,
                           builder: (context) {
                             return Container(

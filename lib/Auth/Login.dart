@@ -60,6 +60,7 @@ class _LoginState extends State<Login> {
                                 return 'Use Calstate LA email';
                               }
                             },
+                            keyboardType: TextInputType.emailAddress,
                             decoration: InputDecoration(
                                 labelText: 'Email',
                                 filled: true,

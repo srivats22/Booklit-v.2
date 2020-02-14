@@ -101,6 +101,8 @@ class _PDFSearchState extends State<PDFSearch> {
                 itemBuilder: (BuildContext context, DataSnapshot snapshot,
                     Animation<double> animation, int index) {
                   return books[index].name.contains(filter) ||
+                          books[index].name.toLowerCase().contains(filter) ||
+                          books[index].major.toLowerCase().contains(filter) ||
                           books[index].major.contains(filter) ||
                           books[index].isbn.contains(filter)
                       ? GestureDetector(

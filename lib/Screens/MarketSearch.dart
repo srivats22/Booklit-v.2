@@ -28,7 +28,7 @@ class _MarkerSearch extends State<MarketSearch> {
     item = Item("", "", "", "");
     final FirebaseDatabase database = FirebaseDatabase
         .instance; //Rather then just writing FirebaseDatabase(), get the instance.
-    itemRef = database.reference().child('sellers');
+    itemRef = database.reference().child('sellBook');
     itemRef.onChildAdded.listen(_onEntryAdded);
     itemRef.onChildChanged.listen(_onEntryChanged);
     controller.addListener(() {
@@ -104,7 +104,8 @@ class _MarkerSearch extends State<MarketSearch> {
                 query: itemRef,
                 itemBuilder: (BuildContext context, DataSnapshot snapshot,
                     Animation<double> animation, int index) {
-                  return items[index].bookName.contains(filter)
+                  return items[index].book.toLowerCase().contains(filter) ||
+                          items[index].book.contains(filter)
                       ? GestureDetector(
                           onTap: () => showModalBottomSheet(
                               context: context,
@@ -143,14 +144,14 @@ class _MarkerSearch extends State<MarketSearch> {
                                         ),
                                       ),
                                       Text(
-                                        items[index].bookName,
+                                        items[index].book,
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 20),
                                         textAlign: TextAlign.center,
                                       ),
                                       Text(
-                                        items[index].sellerName,
+                                        items[index].name,
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18),
@@ -240,7 +241,7 @@ class _MarkerSearch extends State<MarketSearch> {
                                   },
                                 ),
                                 title: Text(
-                                  items[index].sellerName,
+                                  items[index].name,
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 subtitle: Text(items[index].contact),
@@ -261,25 +262,20 @@ class _MarkerSearch extends State<MarketSearch> {
 class Item {
   String key;
   String image;
-  String sellerName;
+  String book;
+  String name;
   String contact;
-  String bookName;
 
-  Item(this.image, this.sellerName, this.contact, this.bookName);
+  Item(this.image, this.book, this.name, this.contact);
 
   Item.fromSnapshot(DataSnapshot snapshot)
       : key = snapshot.key,
         image = snapshot.value["image"],
-        sellerName = snapshot.value["seller name"],
+        name = snapshot.value["name"],
         contact = snapshot.value["contact"],
-        bookName = snapshot.value["book name"];
+        book = snapshot.value["book"];
 
   toJson() {
-    return {
-      "image": image,
-      "seller name": sellerName,
-      "contact": contact,
-      "book name": bookName,
-    };
+    return {"image": image, "name": name, "contact": contact, "book": book};
   }
 }
